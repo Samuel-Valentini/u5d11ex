@@ -32,6 +32,7 @@ public class EmployeeService {
 
         Employee employee = new Employee(
                 employeeDTO.username().trim(),
+                employeeDTO.password().trim(),
                 employeeDTO.firstName().trim(),
                 employeeDTO.lastName().trim(),
                 employeeDTO.email().trim()
@@ -47,6 +48,10 @@ public class EmployeeService {
     public Employee findById(Long employeeId) {
         return employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new NotFoundException(String.valueOf(employeeId)));
+    }
+
+    public Employee findByEmail(String email) {
+        return employeeRepository.findByEmail(email).orElseThrow(() -> new NotFoundException(email));
     }
 
     public Employee updateEmployee(Long employeeId, EmployeeDTO employeeDTO) {

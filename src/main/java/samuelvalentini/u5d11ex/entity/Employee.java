@@ -21,6 +21,11 @@ public class Employee {
     private String username;
 
     @NotBlank(message = "Field is required")
+    @Size(min = 8, max = 255, message = "Field must be between 8 and 255 characters long")
+    @Column(name = "password", nullable = false)
+    private String password;
+
+    @NotBlank(message = "Field is required")
     @Size(max = 255, message = "Field must be at most 255 characters long")
     @Column(name = "first_name", nullable = false)
     private String firstName;
@@ -42,8 +47,9 @@ public class Employee {
     @Column(name = "profile_picture", nullable = false)
     private String profilePicture;
 
-    public Employee(String username, String firstName, String lastName, String email) {
+    public Employee(String username, String password, String firstName, String lastName, String email) {
         this.username = username;
+        this.password = password;
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
@@ -51,6 +57,14 @@ public class Employee {
     }
 
     protected Employee() {
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     public Long getEmployeeId() {
