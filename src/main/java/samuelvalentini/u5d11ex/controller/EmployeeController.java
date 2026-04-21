@@ -68,6 +68,12 @@ public class EmployeeController {
         deleteEmployee(currentAuthenticatedEmployee.getEmployeeId());
     }
 
+    @PatchMapping("/me/profile-picture")
+    public Employee updateOwnProfilePicture(@AuthenticationPrincipal Employee currentAuthenticatedEmployee,
+                                            @RequestParam("profilePicture") MultipartFile file) {
+        return employeeService.updateProfilePicture(currentAuthenticatedEmployee.getEmployeeId(), file);
+    }
+
 
     @PutMapping("/{employeeId}")
     @PreAuthorize("hasAnyAuthority('SUPERADMIN', 'ADMIN')")

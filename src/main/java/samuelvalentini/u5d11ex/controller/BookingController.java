@@ -2,15 +2,21 @@ package samuelvalentini.u5d11ex.controller;
 
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import samuelvalentini.u5d11ex.dto.BookingDTO;
 import samuelvalentini.u5d11ex.entity.Booking;
+import samuelvalentini.u5d11ex.entity.Employee;
+import samuelvalentini.u5d11ex.enumeration.Role;
 import samuelvalentini.u5d11ex.exception.BadRequestException;
+import samuelvalentini.u5d11ex.exception.UnauthorizedException;
 import samuelvalentini.u5d11ex.service.BookingService;
 
 import java.util.List;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/bookings")
@@ -37,6 +43,7 @@ public class BookingController {
     }
 
     @GetMapping({"", "/"})
+    @PreAuthorize("hasAnyAuthority('SUPERADMIN', 'ADMIN')")
     public Page<Booking> getAllBookings(@RequestParam(defaultValue = "0") String page) {
         int pageNumber;
         try {
@@ -53,8 +60,14 @@ public class BookingController {
     }
 
     @GetMapping("/{bookingId}")
-    public Booking getBookingById(@PathVariable Long bookingId) {
-        return bookingService.findById(bookingId);
+    public Booking getBookingById(@PathVariable Long bookingId, @AuthenticationPrincipal Employee currentEmployee) {
+        Booking booking = bookingService.findById(bookingId);
+        if (currentEmployee.getRole().name().equals(Role.ADMIN.name()) || currentEmployee.getRole().name().equals(Role.SUPERADMIN.name())) {
+            return booking;
+        }
+        if (!Objects.equals(currentEmployee.getEmployeeId(), booking.getEmployee().getEmployeeId()))
+            throw new UnauthorizedException("This booking is not associated with you");
+        return booking;
     }
 
     @PutMapping("/{bookingId}")
