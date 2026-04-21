@@ -33,6 +33,12 @@ public class ErrorHandler {
         return new ErrorPayload(ex.getMessages(), LocalDateTime.now());
     }
 
+    @ExceptionHandler(UnauthorizedException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ErrorPayload handleUnauthorizedRequest(UnauthorizedException ex) {
+        return new ErrorPayload(ex.getMessage(), LocalDateTime.now());
+    }
+
     @ExceptionHandler(HandlerMethodValidationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorPayload handleBadRequest(HandlerMethodValidationException ex) {
