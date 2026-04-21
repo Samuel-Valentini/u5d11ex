@@ -71,7 +71,7 @@ public class BookingController {
     }
 
     @PutMapping("/{bookingId}")
-    public Booking updateBooking(@PathVariable Long bookingId, @RequestBody @Validated BookingDTO bookingDTO, BindingResult validationResult) {
+    public Booking updateBooking(@PathVariable Long bookingId, @RequestBody @Validated BookingDTO bookingDTO, BindingResult validationResult, @AuthenticationPrincipal Employee currentEmployee) {
         if (validationResult.hasErrors()) {
             List<String> errors = validationResult.getFieldErrors()
                     .stream()
@@ -80,22 +80,46 @@ public class BookingController {
             throw new BadRequestException(errors);
         }
 
+        Booking existingBooking = bookingService.findById(bookingId);
+
+        if (currentEmployee.getRole() == Role.ADMIN || currentEmployee.getRole() == Role.SUPERADMIN) {
+            return bookingService.updateBooking(bookingId, bookingDTO);
+
+        }
+        if (!Objects.equals(currentEmployee.getEmployeeId(), existingBooking.getEmployee().getEmployeeId()))
+            throw new UnauthorizedException("This booking is not associated with you");
+        if (!Objects.equals(bookingDTO.employeeId(), currentEmployee.getEmployeeId()))
+            throw new UnauthorizedException("You cannot change the employee assigned to this booking");
         return bookingService.updateBooking(bookingId, bookingDTO);
+
     }
 
     @GetMapping("/employee/{employeeId}")
+    @PreAuthorize("hasAnyAuthority('SUPERADMIN', 'ADMIN')")
     public List<Booking> getBookingsByEmployeeId(@PathVariable Long employeeId) {
         return bookingService.findByEmployeeId(employeeId);
     }
 
+    @GetMapping("/employee/me")
+    public List<Booking> getBookingsByEmployeeId(@AuthenticationPrincipal Employee currentEmployee) {
+        return bookingService.findByEmployeeId(currentEmployee.getEmployeeId());
+    }
+
+
     @GetMapping("/trip/{tripId}")
+    @PreAuthorize("hasAnyAuthority('SUPERADMIN', 'ADMIN')")
     public List<Booking> getBookingsByTripId(@PathVariable Long tripId) {
         return bookingService.findByTripId(tripId);
     }
 
+
     @DeleteMapping("/{bookingId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteBooking(@PathVariable Long bookingId) {
+    public void deleteBooking(@PathVariable Long bookingId, @AuthenticationPrincipal Employee currentEmployee) {
+        Booking existingBooking = bookingService.findById(bookingId);
+        if (currentEmployee.getRole() != Role.ADMIN
+                && currentEmployee.getRole() != Role.SUPERADMIN && !Objects.equals(currentEmployee.getEmployeeId(), existingBooking.getEmployee().getEmployeeId()))
+            throw new UnauthorizedException("You cannot delete this booking");
         bookingService.deleteBooking(bookingId);
     }
 }
