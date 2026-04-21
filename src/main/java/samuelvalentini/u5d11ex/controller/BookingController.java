@@ -30,7 +30,7 @@ public class BookingController {
 
     @PostMapping({"", "/"})
     @ResponseStatus(HttpStatus.CREATED)
-    public Booking saveBooking(@RequestBody @Validated BookingDTO bookingDTO, BindingResult validationResult) {
+    public Booking saveBooking(@RequestBody @Validated BookingDTO bookingDTO, BindingResult validationResult, @AuthenticationPrincipal Employee currentEmployee) {
         if (validationResult.hasErrors()) {
             List<String> errors = validationResult.getFieldErrors()
                     .stream()
@@ -38,6 +38,16 @@ public class BookingController {
                     .toList();
             throw new BadRequestException(errors);
         }
+
+        boolean isAdmin = currentEmployee.getRole() == Role.ADMIN
+                || currentEmployee.getRole() == Role.SUPERADMIN;
+
+        boolean isOwner = Objects.equals(
+                currentEmployee.getEmployeeId(),
+                bookingDTO.employeeId());
+
+        if (!isOwner && !isAdmin) throw new UnauthorizedException("You cannot create a booking for another employee");
+
 
         return bookingService.saveBooking(bookingDTO);
     }
