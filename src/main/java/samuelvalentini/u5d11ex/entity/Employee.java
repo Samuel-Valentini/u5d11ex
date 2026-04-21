@@ -3,12 +3,20 @@ package samuelvalentini.u5d11ex.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import org.hibernate.validator.constraints.URL;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import samuelvalentini.u5d11ex.enumeration.Role;
+
+import java.util.Collection;
+import java.util.List;
 
 @Entity
 @Table(name = "employees")
-public class Employee {
+public class Employee implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -47,16 +55,31 @@ public class Employee {
     @Column(name = "profile_picture", nullable = false)
     private String profilePicture;
 
+    @Enumerated(EnumType.STRING)
+    @NotNull(message = "Role is required")
+    @Column(name = "roles", nullable = false)
+    private Role role;
+
     public Employee(String username, String password, String firstName, String lastName, String email) {
         this.username = username;
         this.password = password;
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
+        this.role = Role.USER;
         this.profilePicture = "https://ui-avatars.com/api/?name=" + firstName + "+" + lastName;
     }
 
     protected Employee() {
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of(new SimpleGrantedAuthority(this.role.name()));
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
     }
 
     public String getPassword() {

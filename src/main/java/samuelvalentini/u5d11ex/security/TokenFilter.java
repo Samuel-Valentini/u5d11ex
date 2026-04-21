@@ -4,10 +4,15 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
+import samuelvalentini.u5d11ex.entity.Employee;
 import samuelvalentini.u5d11ex.exception.UnauthorizedException;
+import samuelvalentini.u5d11ex.service.EmployeeService;
 
 import java.io.IOException;
 
@@ -15,9 +20,11 @@ import java.io.IOException;
 public class TokenFilter extends OncePerRequestFilter {
 
     private final TokenTool tokenTools;
+    private final EmployeeService employeeService;
 
-    public TokenFilter(TokenTool tokenTool) {
+    public TokenFilter(TokenTool tokenTool, EmployeeService employeeService) {
         this.tokenTools = tokenTool;
+        this.employeeService = employeeService;
     }
 
     @Override
@@ -31,6 +38,13 @@ public class TokenFilter extends OncePerRequestFilter {
 
         tokenTools.verifyToken(accessToken);
 
+        //1. estraiamo id dal token
+        Long userId = this.tokenTools.extractIdFromToken(accessToken);
+        // 2. find
+        Employee authenticatedEmployee = this.employeeService.findById(userId);
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken(authenticatedEmployee, null, authenticatedEmployee.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(authentication);
 
         filterChain.doFilter(request, response);
     }
@@ -38,7 +52,7 @@ public class TokenFilter extends OncePerRequestFilter {
     @Override
 
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
-        
+
 
         return new AntPathMatcher().match("/auth/**", request.getServletPath());
 

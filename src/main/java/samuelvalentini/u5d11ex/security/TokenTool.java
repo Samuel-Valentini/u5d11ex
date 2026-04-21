@@ -30,4 +30,8 @@ public class TokenTool {
             throw new UnauthorizedException("Unauthorized User");
         }
     }
+
+    public Long extractIdFromToken(String token){
+      return Long.valueOf(Jwts.parser().verifyWith(Keys.hmacShaKeyFor(secret.getBytes())).build().parseSignedClaims(token).getPayload().getSubject());
+    }
 }
