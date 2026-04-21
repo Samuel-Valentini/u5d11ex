@@ -118,4 +118,8 @@ public class BookingService {
         }
         return notesPreferences.trim();
     }
+
+    public boolean existsBookingForEmployeeInTrip(Long tripId, Long employeeId) {
+        return bookingRepository.existsByTripTripIdAndEmployeeEmployeeId(tripId, employeeId);
+    }
 }
