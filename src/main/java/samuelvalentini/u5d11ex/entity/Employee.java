@@ -1,5 +1,7 @@
 package samuelvalentini.u5d11ex.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -16,6 +18,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "employees")
+@JsonIgnoreProperties({"accountNonExpired", "accountNonLocked", "authorities", "credentialsNonExpired", "enabled"})
 public class Employee implements UserDetails {
 
     @Id
@@ -30,6 +33,7 @@ public class Employee implements UserDetails {
 
     @NotBlank(message = "Field is required")
     @Size(min = 8, max = 255, message = "Field must be between 8 and 255 characters long")
+    @JsonIgnore
     @Column(name = "password", nullable = false)
     private String password;
 

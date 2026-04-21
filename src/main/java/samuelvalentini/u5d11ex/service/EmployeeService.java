@@ -2,6 +2,7 @@ package samuelvalentini.u5d11ex.service;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import samuelvalentini.u5d11ex.dto.EmployeeDTO;
@@ -21,10 +22,12 @@ public class EmployeeService {
 
     private final EmployeeRepository employeeRepository;
     private final Cloudinary cloudinary;
+    private final PasswordEncoder bcrypt;
 
-    public EmployeeService(EmployeeRepository employeeRepository, Cloudinary cloudinary) {
+    public EmployeeService(EmployeeRepository employeeRepository, Cloudinary cloudinary, PasswordEncoder bcrypt) {
         this.employeeRepository = employeeRepository;
         this.cloudinary = cloudinary;
+        this.bcrypt = bcrypt;
     }
 
     public Employee saveEmployee(EmployeeDTO employeeDTO) {
@@ -32,7 +35,7 @@ public class EmployeeService {
 
         Employee employee = new Employee(
                 employeeDTO.username().trim(),
-                employeeDTO.password().trim(),
+                bcrypt.encode(employeeDTO.password()),
                 employeeDTO.firstName().trim(),
                 employeeDTO.lastName().trim(),
                 employeeDTO.email().trim()
