@@ -10,6 +10,7 @@ import samuelvalentini.u5d11ex.entity.Employee;
 import samuelvalentini.u5d11ex.exception.BadRequestException;
 import samuelvalentini.u5d11ex.exception.NotFoundException;
 import samuelvalentini.u5d11ex.repository.EmployeeRepository;
+import samuelvalentini.u5d11ex.utility.EmailSender;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -23,11 +24,13 @@ public class EmployeeService {
     private final EmployeeRepository employeeRepository;
     private final Cloudinary cloudinary;
     private final PasswordEncoder bcrypt;
+    private final EmailSender emailSender;
 
-    public EmployeeService(EmployeeRepository employeeRepository, Cloudinary cloudinary, PasswordEncoder bcrypt) {
+    public EmployeeService(EmployeeRepository employeeRepository, Cloudinary cloudinary, PasswordEncoder bcrypt, EmailSender emailSender) {
         this.employeeRepository = employeeRepository;
         this.cloudinary = cloudinary;
         this.bcrypt = bcrypt;
+        this.emailSender = emailSender;
     }
 
     public Employee saveEmployee(EmployeeDTO employeeDTO) {
@@ -41,7 +44,11 @@ public class EmployeeService {
                 employeeDTO.email().trim()
         );
 
-        return employeeRepository.save(employee);
+        Employee savedEmployee = employeeRepository.save(employee);
+
+        this.emailSender.sendRegistrationEmail(savedEmployee);
+
+        return savedEmployee;
     }
 
     public List<Employee> findAll() {
